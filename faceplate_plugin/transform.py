@@ -11,6 +11,8 @@ from .constants import (
     EDGE_CUT_LINE_WIDTH_MM,
     FACEPLATE_FIELD_NAME,
     FACEPLATE_HEIGHT_MM,
+    FACEPLATE_ORIGIN_X_MM,
+    FACEPLATE_ORIGIN_Y_MM,
     HP_KERF_MM,
     HP_MM,
     MOUNT_HOLE_HP_THRESHOLD,
@@ -26,7 +28,7 @@ FACEPLATE_LIB_PATH = os.path.join(PLUGIN_DIR, "Faceplate.pretty")
 
 
 def build_faceplate(board):
-    """Mutate `board` into a Eurorack faceplate. Returns the HP detected."""
+    """Mutate `board` into a Eurorack faceplate. Returns (hp, panel_count, diag)."""
     src_bbox = _edge_cuts_bbox(board)
     src_x_mm = pcbnew.ToMM(src_bbox.GetX())
     src_y_mm = pcbnew.ToMM(src_bbox.GetY())
@@ -36,10 +38,13 @@ def build_faceplate(board):
     hp = _round_to_hp(src_w_mm)
     panel_w_mm = hp * HP_MM - HP_KERF_MM
 
-    panel_specs = _snapshot_panel_footprints(board)
+    panel_specs, diag = _snapshot_panel_footprints(board)
 
-    dx_mm = -src_x_mm
-    dy_mm = -src_y_mm + (FACEPLATE_HEIGHT_MM - src_h_mm) / 2.0
+    # Translate from the source PCB's coordinate space into the destination
+    # faceplate space: source bbox top-left -> faceplate origin, with the
+    # source content centered vertically inside the 128.5 mm faceplate.
+    dx_mm = FACEPLATE_ORIGIN_X_MM - src_x_mm
+    dy_mm = FACEPLATE_ORIGIN_Y_MM - src_y_mm + (FACEPLATE_HEIGHT_MM - src_h_mm) / 2.0
 
     _strip_board(board)
 
@@ -50,10 +55,16 @@ def build_faceplate(board):
         new_fp.SetReference(spec["reference"])
         board.Add(new_fp)
 
-    _add_edge_rect(board, 0.0, 0.0, panel_w_mm, FACEPLATE_HEIGHT_MM)
+    _add_edge_rect(
+        board,
+        FACEPLATE_ORIGIN_X_MM,
+        FACEPLATE_ORIGIN_Y_MM,
+        FACEPLATE_ORIGIN_X_MM + panel_w_mm,
+        FACEPLATE_ORIGIN_Y_MM + FACEPLATE_HEIGHT_MM,
+    )
     _add_mounting_holes(board, hp, panel_w_mm)
 
-    return hp
+    return hp, len(panel_specs), diag
 
 
 def _edge_cuts_bbox(board):
@@ -79,9 +90,15 @@ def _round_to_hp(width_mm):
 
 
 def _snapshot_panel_footprints(board):
+    """Return (specs, diag). `diag` lists every footprint and its field/property keys
+    so we can show useful feedback if no panel footprints are detected."""
     specs = []
+    diag_lines = []
     for fp in board.GetFootprints():
+        ref = fp.GetReference()
         field_value = _get_field_value(fp, FACEPLATE_FIELD_NAME)
+        keys = _all_field_keys(fp)
+        diag_lines.append(f"  {ref}: keys={sorted(keys) or '<none>'}")
         if not field_value:
             continue
         pos = fp.GetPosition()
@@ -90,26 +107,79 @@ def _snapshot_panel_footprints(board):
             "x_mm": pcbnew.ToMM(pos.x),
             "y_mm": pcbnew.ToMM(pos.y),
             "rot_deg": fp.GetOrientationDegrees(),
-            "reference": fp.GetReference(),
+            "reference": ref,
         })
-    return specs
+    return specs, "\n".join(diag_lines)
 
 
-def _get_field_value(footprint, name):
-    """Read a custom field from a footprint. KiCad 9/10 removed GetFieldByName."""
+def _all_field_keys(footprint):
+    """Best-effort enumeration of every field/property name on a footprint, for diagnostics."""
+    keys = set()
     try:
         for field in footprint.GetFields():
-            if field.GetName() == name:
-                value = field.GetText()
-                return value or None
-    except AttributeError:
+            try:
+                keys.add(field.GetName())
+            except Exception:
+                pass
+            try:
+                keys.add(field.GetCanonicalName())
+            except Exception:
+                pass
+    except Exception:
         pass
     try:
         props = footprint.GetProperties()
-        if name in props:
-            return props[name] or None
+        try:
+            keys.update(list(props.keys()))
+        except (AttributeError, TypeError):
+            try:
+                for k in props:
+                    keys.add(k)
+            except TypeError:
+                pass
     except (AttributeError, TypeError):
         pass
+    keys.discard("")
+    return keys
+
+
+def _get_field_value(footprint, name):
+    """Read a custom field from a footprint. Tries every API KiCad 10 exposes."""
+    # Canonical v10: FOOTPRINT.HasField/GetField (string-keyed).
+    try:
+        if footprint.HasField(name):
+            field = footprint.GetField(name)
+            if field is not None:
+                value = field.GetText()
+                if value:
+                    return value
+    except (AttributeError, TypeError):
+        pass
+
+    # Fallback 1: iterate PCB_FIELDS, matching either GetName() or GetCanonicalName().
+    try:
+        for field in footprint.GetFields():
+            try:
+                names = (field.GetName(), field.GetCanonicalName())
+            except AttributeError:
+                names = (field.GetName(),)
+            if name in names:
+                value = field.GetText()
+                if value:
+                    return value
+    except (AttributeError, TypeError):
+        pass
+
+    # Fallback 2: GetProperties() dict (used for footprint-level metadata).
+    try:
+        props = footprint.GetProperties()
+        if hasattr(props, "__contains__") and name in props:
+            value = props[name]
+            if value:
+                return value
+    except (AttributeError, TypeError):
+        pass
+
     return None
 
 
@@ -188,22 +258,15 @@ def _add_edge_rect(board, x0, y0, x1, y1):
 
 
 def _add_mounting_holes(board, hp, panel_w_mm):
-    inset_x = MOUNT_HOLE_INSET_X_MM
-    inset_y_top = MOUNT_HOLE_INSET_Y_MM
-    inset_y_bot = FACEPLATE_HEIGHT_MM - MOUNT_HOLE_INSET_Y_MM
+    left = FACEPLATE_ORIGIN_X_MM + MOUNT_HOLE_INSET_X_MM
+    right = FACEPLATE_ORIGIN_X_MM + panel_w_mm - MOUNT_HOLE_INSET_X_MM
+    top = FACEPLATE_ORIGIN_Y_MM + MOUNT_HOLE_INSET_Y_MM
+    bottom = FACEPLATE_ORIGIN_Y_MM + FACEPLATE_HEIGHT_MM - MOUNT_HOLE_INSET_Y_MM
 
     if hp <= MOUNT_HOLE_HP_THRESHOLD:
-        positions = [
-            (inset_x, inset_y_top),
-            (panel_w_mm - inset_x, inset_y_bot),
-        ]
+        positions = [(left, top), (right, bottom)]
     else:
-        positions = [
-            (inset_x, inset_y_top),
-            (panel_w_mm - inset_x, inset_y_top),
-            (inset_x, inset_y_bot),
-            (panel_w_mm - inset_x, inset_y_bot),
-        ]
+        positions = [(left, top), (right, top), (left, bottom), (right, bottom)]
 
     for i, (x, y) in enumerate(positions, start=1):
         hole = _load_faceplate_footprint(MOUNTING_HOLE_FOOTPRINT)
