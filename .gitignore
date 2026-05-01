@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+*-backups/
+*.kicad_pcb-bak
+fp-info-cache
+.claude/
