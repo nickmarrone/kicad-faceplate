@@ -12,8 +12,11 @@ from .constants import (
     FACEPLATE_FIELD_NAME,
     FACEPLATE_HEIGHT_MM,
     FACEPLATE_NAME_FIELD,
+    FACEPLATE_OFFSET_X_FIELD,
+    FACEPLATE_OFFSET_Y_FIELD,
     FACEPLATE_ORIGIN_X_MM,
     FACEPLATE_ORIGIN_Y_MM,
+    HP_ACTUAL_WIDTH_MM,
     HP_KERF_MM,
     HP_MM,
     LABEL_OFFSET_MM,
@@ -40,7 +43,7 @@ def build_faceplate(board):
     src_h_mm = pcbnew.ToMM(src_bbox.GetHeight())
 
     hp = _round_to_hp(src_w_mm)
-    panel_w_mm = hp * HP_MM - HP_KERF_MM
+    panel_w_mm = HP_ACTUAL_WIDTH_MM.get(hp, hp * HP_MM - HP_KERF_MM)
 
     panel_specs, diag = _snapshot_panel_footprints(board)
 
@@ -53,8 +56,8 @@ def build_faceplate(board):
     _strip_board(board)
 
     for spec in panel_specs:
-        cx = spec["x_mm"] + dx_mm
-        cy = spec["y_mm"] + dy_mm
+        cx = spec["x_mm"] + dx_mm + spec["offset_x_mm"]
+        cy = spec["y_mm"] + dy_mm + spec["offset_y_mm"]
         new_fp = _load_faceplate_footprint(spec["name"])
         new_fp.SetPosition(_point_mm(cx, cy))
         new_fp.SetOrientationDegrees(spec["rot_deg"])
@@ -114,6 +117,8 @@ def _snapshot_panel_footprints(board):
             "name": _resolve_footprint_name(field_value),
             "x_mm": pcbnew.ToMM(pos.x),
             "y_mm": pcbnew.ToMM(pos.y),
+            "offset_x_mm": _parse_mm_field(fp, FACEPLATE_OFFSET_X_FIELD),
+            "offset_y_mm": _parse_mm_field(fp, FACEPLATE_OFFSET_Y_FIELD),
             "rot_deg": fp.GetOrientationDegrees(),
             "reference": ref,
             "label": _get_field_value(fp, FACEPLATE_NAME_FIELD),
@@ -150,6 +155,17 @@ def _all_field_keys(footprint):
         pass
     keys.discard("")
     return keys
+
+
+def _parse_mm_field(footprint, name):
+    """Read a numeric mm offset field. Returns 0.0 if absent or unparseable."""
+    raw = _get_field_value(footprint, name)
+    if raw is None:
+        return 0.0
+    try:
+        return float(raw)
+    except ValueError:
+        return 0.0
 
 
 def _get_field_value(footprint, name):

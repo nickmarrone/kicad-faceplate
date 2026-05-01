@@ -21,6 +21,8 @@ EDGE_CUT_LINE_WIDTH_MM = 0.05
 
 FACEPLATE_FIELD_NAME = "Faceplate"
 FACEPLATE_NAME_FIELD = "FaceplateName"
+FACEPLATE_OFFSET_X_FIELD = "FaceplateOffsetX"
+FACEPLATE_OFFSET_Y_FIELD = "FaceplateOffsetY"
 FACEPLATE_LIB_NAME = "Faceplate"
 MOUNTING_HOLE_FOOTPRINT = "MountingHole_M3_Oval"
 
@@ -32,3 +34,25 @@ MOUNTING_HOLE_FOOTPRINT = "MountingHole_M3_Oval"
 LABEL_OFFSET_MM = 6.0
 LABEL_TEXT_HEIGHT_MM = 1.5
 LABEL_TEXT_THICKNESS_MM = 0.25
+
+# Actual panel widths per HP from Doepfer/Eurorack mechanical spec.
+# The "calculated" width is HP * 5.08 mm; the actual width is slightly less.
+# Source: Doepfer A-100 construction details table.
+HP_ACTUAL_WIDTH_MM = {
+    1:    5.0,
+    1.5:  7.5,
+    2:    9.8,
+    4:   20.0,
+    6:   30.0,
+    8:   40.3,
+    10:  50.5,
+    12:  60.6,
+    14:  70.8,
+    16:  80.9,
+    18:  91.3,
+    20: 101.3,
+    21: 106.3,
+    22: 111.4,
+    28: 141.9,
+    42: 213.0,
+}

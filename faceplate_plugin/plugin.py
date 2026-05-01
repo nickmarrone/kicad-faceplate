@@ -81,6 +81,18 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
             )
         self._info(msg)
 
+    def _parent_window(self):
+        """Return a visible top-level window to use as dialog parent.
+
+        On Linux/GTK, passing None as the parent causes dialogs to open behind
+        the KiCad frame. Using the first visible top-level window fixes this.
+        """
+        try:
+            wins = [w for w in wx.GetTopLevelWindows() if w.IsShown()]
+            return wins[0] if wins else None
+        except Exception:
+            return None
+
     def _confirm_saved(self):
         """Remind the user to save first. We read the PCB from disk, so any
         unsaved in-editor edits won't be picked up — and we want to be loud
@@ -95,6 +107,7 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
             "Continue?",
             "Eurorack Faceplate",
             style=wx.YES_NO | wx.ICON_INFORMATION | wx.YES_DEFAULT,
+            parent=self._parent_window(),
         )
         return res == wx.YES
 
@@ -106,7 +119,7 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
             return os.path.join(os.path.dirname(src_path), default_name)
 
         with wx.FileDialog(
-            None,
+            self._parent_window(),
             message="Save Eurorack faceplate as",
             defaultDir=os.path.dirname(src_path),
             defaultFile=default_name,
@@ -119,14 +132,18 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
 
     def _info(self, message):
         if wx is not None:
-            wx.MessageBox(message, "Eurorack Faceplate", wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(
+                message, "Eurorack Faceplate", wx.OK | wx.ICON_INFORMATION,
+                parent=self._parent_window(),
+            )
         else:
             print(message)
 
     def _error(self, message):
         if wx is not None:
             wx.MessageBox(
-                message, "Eurorack Faceplate — Error", wx.OK | wx.ICON_ERROR
+                message, "Eurorack Faceplate — Error", wx.OK | wx.ICON_ERROR,
+                parent=self._parent_window(),
             )
         else:
             print(f"ERROR: {message}")

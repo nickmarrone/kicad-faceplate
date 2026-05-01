@@ -35,13 +35,14 @@ Restart KiCad (or `Tools → External Plugins → Refresh Plugins` inside pcbnew
 
 ## Usage in your circuit PCB
 
-1. Lay out the circuit so panel-facing parts (jacks, pots, switches, LEDs) sit at the X/Y you want them on the faceplate.
+1. Lay out the circuit so panel-facing parts (jacks, pots, switches, LEDs) sit at the X/Y you want them on the faceplate. **The easiest way to get holes in the right place is to center the footprint's origin on the part's shaft/barrel — then no offset fields are needed.**
 2. For each panel-facing footprint, add a custom field:
     - **Field name:** `Faceplate`
     - **Field value:** `Faceplate:<FootprintName>` — for example `Faceplate:Jack_3.5mm_Thonkiconn`.
 3. *(Optional)* Add a second custom field `FaceplateName` with whatever short label you want printed above the hole on the panel (e.g. `IN`, `CV`, `RATE`).
-4. **Save the PCB** (`Ctrl+S`). The plugin reads from disk — unsaved edits are ignored.
-5. Run the plugin. It asks where to save the faceplate, then generates it.
+4. *(Optional)* If the circuit footprint's origin does not land on the panel hole center (e.g. the manufacturer footprint is anchored to pin 1 instead of the shaft), add `FaceplateOffsetX` and/or `FaceplateOffsetY` fields with a numeric value in **mm**. Positive X is right, positive Y is down (KiCad coordinate convention). These nudge only the faceplate hole; the source footprint is untouched.
+5. **Save the PCB** (`Ctrl+S`). The plugin reads from disk — unsaved edits are ignored.
+6. Run the plugin. It asks where to save the faceplate, then generates it.
 
 The HP is detected from your source PCB's edge cuts; make sure the outline is roughly the width you want.
 
@@ -51,6 +52,8 @@ The HP is detected from your source PCB's edge cuts; make sure the outline is ro
 | --- | --- | --- | --- |
 | `Faceplate` | Yes | `Faceplate:<FootprintName>` | Marks the part as panel-facing and tells the plugin which hole footprint to drop in its place. |
 | `FaceplateName` | No | Free text | Drawn on F.SilkS centered above the hole. Always reads horizontally even if the part is rotated. |
+| `FaceplateOffsetX` | No | Number (mm) | Shifts the faceplate hole right (+) or left (−) relative to the source footprint origin. Prefer centering the source footprint instead. |
+| `FaceplateOffsetY` | No | Number (mm) | Shifts the faceplate hole down (+) or up (−) relative to the source footprint origin. Prefer centering the source footprint instead. |
 
 ## Bundled footprints
 
