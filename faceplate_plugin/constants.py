@@ -20,5 +20,15 @@ MOUNT_HOLE_HP_THRESHOLD = 8
 EDGE_CUT_LINE_WIDTH_MM = 0.05
 
 FACEPLATE_FIELD_NAME = "Faceplate"
+FACEPLATE_NAME_FIELD = "FaceplateName"
 FACEPLATE_LIB_NAME = "Faceplate"
 MOUNTING_HOLE_FOOTPRINT = "MountingHole_M3_Oval"
+
+# Label rendered on F.SilkS above each panel hole when the source footprint
+# carries a `FaceplateName` field. The anchor is `LABEL_OFFSET_MM` above the
+# hole center, with the text bottom-aligned (so the text grows upward away
+# from the hole). The offset is chosen to clear the largest panel hole
+# (Ø8 LED bezel) with ~2 mm breathing room.
+LABEL_OFFSET_MM = 6.0
+LABEL_TEXT_HEIGHT_MM = 1.5
+LABEL_TEXT_THICKNESS_MM = 0.25

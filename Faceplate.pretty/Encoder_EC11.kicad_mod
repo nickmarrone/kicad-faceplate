@@ -1,15 +1,90 @@
 (footprint "Encoder_EC11"
-  (version 20240108)
-  (generator "kicad-faceplate")
-  (layer "F.Cu")
-  (descr "Eurorack panel hole for EC11 rotary encoder. 7mm hole.")
-  (tags "eurorack faceplate encoder")
-  (attr exclude_from_pos_files exclude_from_bom allow_missing_courtyard)
-  (fp_text reference "SW**" (at 0 -6) (layer "F.SilkS") (hide yes)
-    (effects (font (size 1 1) (thickness 0.15)))
-  )
-  (fp_text value "Encoder_EC11" (at 0 6) (layer "F.Fab") (hide yes)
-    (effects (font (size 1 1) (thickness 0.15)))
-  )
-  (fp_circle (center 0 0) (end 3.5 0) (stroke (width 0.05) (type default)) (fill no) (layer "Edge.Cuts"))
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Eurorack panel hole for EC11 rotary encoder. 7mm hole.")
+	(tags "eurorack faceplate encoder")
+	(property "Reference" "SW**"
+		(at 0 -6 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "cba13d44-b8db-475d-a9e9-95940c4cb64e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Encoder_EC11"
+		(at 0 6 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6b9430bc-949b-42b3-bd04-4c5a97cfbca7")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "073970bd-6dee-4fa0-b2a4-a7c3e387a566")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "9a63c6d6-e1ee-4298-8a31-4168da78b9fb")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr exclude_from_pos_files exclude_from_bom allow_missing_courtyard)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 0 0)
+		(end 3.7 0)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Cu")
+		(uuid "67bbe82f-9044-4451-8f4c-5cdde25090b9")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 4.15 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Mask")
+		(uuid "e27e5133-5c61-477b-974b-ad54980ae1b7")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 3.5 0)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "6c8a2847-b91b-469f-ae2b-8dc0b24cf321")
+	)
+	(embedded_fonts no)
 )

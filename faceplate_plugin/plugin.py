@@ -1,6 +1,7 @@
 """ActionPlugin entry point — wires up wx file dialog, copy, transform, save."""
 
 import os
+import shutil
 import traceback
 
 import pcbnew
@@ -43,15 +44,26 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
             self._error("Save the PCB to disk before running the faceplate generator.")
             return
 
+        if not self._confirm_saved():
+            return
+
         dest_path = self._ask_dest_path(src_path)
         if not dest_path:
             return
 
-        # Save the live board *as-is* to the destination path. This captures any
-        # unsaved edits the user has made in pcbnew (e.g. fields just added) and
-        # never overwrites the source file. Then we load that fresh file and
-        # transform it — the live board is never mutated.
-        pcbnew.SaveBoard(dest_path, board)
+        if os.path.realpath(dest_path) == os.path.realpath(src_path):
+            self._error(
+                "Destination is the same as the source PCB.\n"
+                "Pick a different filename — the plugin refuses to overwrite the original."
+            )
+            return
+
+        # Filesystem-level copy: the source file is read once and never written.
+        # This is the only safe way to guarantee the original PCB cannot be
+        # touched, even if a downstream KiCad call has a side-effect on the
+        # board's filename. We never call SaveBoard with the live `board`.
+        shutil.copyfile(src_path, dest_path)
+
         dest_board = pcbnew.LoadBoard(dest_path)
         hp, panel_count, diag = build_faceplate(dest_board)
         pcbnew.SaveBoard(dest_path, dest_board)
@@ -68,6 +80,23 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
                 "Footprints scanned:\n" + (diag or "  <none>")
             )
         self._info(msg)
+
+    def _confirm_saved(self):
+        """Remind the user to save first. We read the PCB from disk, so any
+        unsaved in-editor edits won't be picked up — and we want to be loud
+        about it after a previous version of this plugin lost data."""
+        if wx is None:
+            return True
+        res = wx.MessageBox(
+            "The faceplate generator reads the PCB from disk.\n\n"
+            "Make sure you have saved your PCB (File → Save / Ctrl+S) "
+            "before continuing — any unsaved edits will be ignored.\n\n"
+            "The original PCB will not be modified.\n\n"
+            "Continue?",
+            "Eurorack Faceplate",
+            style=wx.YES_NO | wx.ICON_INFORMATION | wx.YES_DEFAULT,
+        )
+        return res == wx.YES
 
     def _ask_dest_path(self, src_path):
         default_name = os.path.basename(src_path).replace(

@@ -11,10 +11,14 @@ from .constants import (
     EDGE_CUT_LINE_WIDTH_MM,
     FACEPLATE_FIELD_NAME,
     FACEPLATE_HEIGHT_MM,
+    FACEPLATE_NAME_FIELD,
     FACEPLATE_ORIGIN_X_MM,
     FACEPLATE_ORIGIN_Y_MM,
     HP_KERF_MM,
     HP_MM,
+    LABEL_OFFSET_MM,
+    LABEL_TEXT_HEIGHT_MM,
+    LABEL_TEXT_THICKNESS_MM,
     MOUNT_HOLE_HP_THRESHOLD,
     MOUNT_HOLE_INSET_X_MM,
     MOUNT_HOLE_INSET_Y_MM,
@@ -49,11 +53,15 @@ def build_faceplate(board):
     _strip_board(board)
 
     for spec in panel_specs:
+        cx = spec["x_mm"] + dx_mm
+        cy = spec["y_mm"] + dy_mm
         new_fp = _load_faceplate_footprint(spec["name"])
-        new_fp.SetPosition(_point_mm(spec["x_mm"] + dx_mm, spec["y_mm"] + dy_mm))
+        new_fp.SetPosition(_point_mm(cx, cy))
         new_fp.SetOrientationDegrees(spec["rot_deg"])
         new_fp.SetReference(spec["reference"])
         board.Add(new_fp)
+        if spec["label"]:
+            _add_silk_label(board, cx, cy - LABEL_OFFSET_MM, spec["label"])
 
     _add_edge_rect(
         board,
@@ -108,6 +116,7 @@ def _snapshot_panel_footprints(board):
             "y_mm": pcbnew.ToMM(pos.y),
             "rot_deg": fp.GetOrientationDegrees(),
             "reference": ref,
+            "label": _get_field_value(fp, FACEPLATE_NAME_FIELD),
         })
     return specs, "\n".join(diag_lines)
 
@@ -238,6 +247,31 @@ def _get_zones(board):
     if hasattr(board, "Zones"):
         return board.Zones()
     return board.GetZones()
+
+
+def _add_silk_label(board, x_mm, y_mm, text):
+    """Drop centered, bottom-aligned text on F.SilkS at (x_mm, y_mm).
+
+    Bottom-aligned means the anchor is the baseline-ish point: the text grows
+    upward away from the panel hole. Always horizontal (we don't rotate the
+    label to match a rotated component — labels read left-to-right on the
+    finished panel)."""
+    label = pcbnew.PCB_TEXT(board)
+    label.SetText(text)
+    label.SetLayer(pcbnew.F_SilkS)
+    label.SetPosition(_point_mm(x_mm, y_mm))
+    size_nm = pcbnew.FromMM(LABEL_TEXT_HEIGHT_MM)
+    label.SetTextSize(_vec(size_nm, size_nm))
+    label.SetTextThickness(pcbnew.FromMM(LABEL_TEXT_THICKNESS_MM))
+    label.SetHorizJustify(pcbnew.GR_TEXT_H_ALIGN_CENTER)
+    label.SetVertJustify(pcbnew.GR_TEXT_V_ALIGN_BOTTOM)
+    board.Add(label)
+
+
+def _vec(x_nm, y_nm):
+    if hasattr(pcbnew, "VECTOR2I"):
+        return pcbnew.VECTOR2I(x_nm, y_nm)
+    return pcbnew.wxSize(x_nm, y_nm)
 
 
 def _add_edge_rect(board, x0, y0, x1, y1):
