@@ -50,12 +50,22 @@ The HP is detected from your source PCB's edge cuts; make sure the outline is ro
 | `Faceplate:Pot_16mm_Alpha` | Ø7 mm | 16 mm Alpha pot |
 | `Faceplate:LED_3mm_Bezel` | Ø6 mm | 3 mm LED with bezel |
 | `Faceplate:LED_5mm_Bezel` | Ø8 mm | 5 mm LED with bezel |
+| `Faceplate:LED_0603_LightPipe` | Ø2.5 mm window (no hole) | 0603 LED on a behind-panel PCB shining through bare FR4 |
 | `Faceplate:Encoder_EC11` | Ø7 mm | EC11 rotary encoder |
 | `Faceplate:Switch_Toggle_SubMini` | Ø6.35 mm | Sub-mini SPDT/DPDT toggle (Salecom T8011) |
 | `Faceplate:Switch_Tactile_Panel` | Ø7 mm | Panel-mount tactile switch |
 | `Faceplate:MountingHole_M3_Oval` | 5.5 × 3.2 mm slot | M3 mounting slot (auto-added by the plugin) |
 
 To add your own panel hole, drop a new `.kicad_mod` into `Faceplate.pretty/` and reference it by name in your `Faceplate` field.
+
+### About `LED_0603_LightPipe`
+
+This footprint draws **no Edge.Cuts hole** — it leaves the faceplate's FR4 solid where the LED sits, then opens the soldermask (both sides) so bare FR4 transmits the light. Bare FR4 is naturally translucent (yellowy/greenish), and an LED behind it shows up as a glowing dot on the panel face.
+
+Assumptions:
+- The faceplate PCB has no copper pours covering the LED location. If it does, copper will block the light — add a copper keepout zone over the window.
+- The behind-panel PCB stack is short enough that the 0603 LED sits close to the faceplate (typically achieved with 11 mm board-to-board headers / standoffs).
+- Use a high-brightness 0603 LED — the FR4 attenuates significantly.
 
 ## Constants
 
