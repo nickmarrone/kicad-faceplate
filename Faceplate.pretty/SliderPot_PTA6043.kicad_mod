@@ -1,0 +1,152 @@
+(footprint "SliderPot_PTA6043"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Eurorack panel slot for Bourns PTA6043 60mm sliding potentiometer. 62x3mm slot.")
+	(tags "eurorack faceplate slider potentiometer bourns PTA6043")
+	(property "Reference" "RV**"
+		(at 0 -35 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "d2b3c4d5-0002-0002-0002-000000000001")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "SliderPot_PTA6043"
+		(at 0 35 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d2b3c4d5-0002-0002-0002-000000000002")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d2b3c4d5-0002-0002-0002-000000000003")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d2b3c4d5-0002-0002-0002-000000000004")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr exclude_from_pos_files exclude_from_bom allow_missing_courtyard)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_arc
+		(start -1.5 -29.5)
+		(mid 0 -31)
+		(end 1.5 -29.5)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(layer "F.Cu")
+		(uuid "d2b3c4d5-0002-0002-0002-000000000005")
+	)
+	(fp_line
+		(start 1.5 -29.5)
+		(end 1.5 29.5)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(layer "F.Cu")
+		(uuid "d2b3c4d5-0002-0002-0002-000000000006")
+	)
+	(fp_arc
+		(start 1.5 29.5)
+		(mid 0 31)
+		(end -1.5 29.5)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(layer "F.Cu")
+		(uuid "d2b3c4d5-0002-0002-0002-000000000007")
+	)
+	(fp_line
+		(start -1.5 29.5)
+		(end -1.5 -29.5)
+		(stroke
+			(width 0.6)
+			(type solid)
+		)
+		(layer "F.Cu")
+		(uuid "d2b3c4d5-0002-0002-0002-000000000008")
+	)
+	(fp_rect
+		(start -1.75 -31.25)
+		(end 1.75 31.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.Mask")
+		(uuid "d2b3c4d5-0002-0002-0002-000000000009")
+	)
+	(fp_arc
+		(start -1.5 -29.5)
+		(mid 0 -31)
+		(end 1.5 -29.5)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "d2b3c4d5-0002-0002-0002-00000000000a")
+	)
+	(fp_line
+		(start 1.5 -29.5)
+		(end 1.5 29.5)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "d2b3c4d5-0002-0002-0002-00000000000b")
+	)
+	(fp_arc
+		(start 1.5 29.5)
+		(mid 0 31)
+		(end -1.5 29.5)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "d2b3c4d5-0002-0002-0002-00000000000c")
+	)
+	(fp_line
+		(start -1.5 29.5)
+		(end -1.5 -29.5)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "Edge.Cuts")
+		(uuid "d2b3c4d5-0002-0002-0002-00000000000d")
+	)
+	(embedded_fonts no)
+)
