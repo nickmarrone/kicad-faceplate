@@ -54,6 +54,7 @@ def build_faceplate(board):
     dy_mm = FACEPLATE_ORIGIN_Y_MM - src_y_mm + (FACEPLATE_HEIGHT_MM - src_h_mm) / 2.0
 
     _strip_board(board)
+    board.SetCopperLayerCount(2)
 
     for spec in panel_specs:
         cx = spec["x_mm"] + dx_mm + spec["offset_x_mm"]
