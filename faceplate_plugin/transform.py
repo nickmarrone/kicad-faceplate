@@ -4,6 +4,8 @@ Operates on a freshly-loaded `pcbnew.BOARD` (never the live `pcbnew.GetBoard()`)
 """
 
 import os
+import re
+import sys
 
 import pcbnew
 
@@ -11,6 +13,7 @@ from .constants import (
     EDGE_CUT_LINE_WIDTH_MM,
     FACEPLATE_FIELD_NAME,
     FACEPLATE_HEIGHT_MM,
+    FACEPLATE_LIB_NAME,
     FACEPLATE_NAME_FIELD,
     FACEPLATE_OFFSET_X_FIELD,
     FACEPLATE_OFFSET_Y_FIELD,
@@ -36,6 +39,8 @@ FACEPLATE_LIB_PATH = os.path.join(PLUGIN_DIR, "Faceplate.pretty")
 
 def build_faceplate(board):
     """Mutate `board` into a Eurorack faceplate. Returns (hp, panel_count, diag)."""
+    project_dir = os.path.dirname(board.GetFileName())
+
     src_bbox = _edge_cuts_bbox(board)
     src_x_mm = pcbnew.ToMM(src_bbox.GetX())
     src_y_mm = pcbnew.ToMM(src_bbox.GetY())
@@ -59,7 +64,7 @@ def build_faceplate(board):
     for spec in panel_specs:
         cx = spec["x_mm"] + dx_mm + spec["offset_x_mm"]
         cy = spec["y_mm"] + dy_mm + spec["offset_y_mm"]
-        new_fp = _load_faceplate_footprint(spec["name"])
+        new_fp = _load_faceplate_footprint(spec["fp_name"], spec["lib_name"], project_dir)
         new_fp.SetPosition(_point_mm(cx, cy))
         new_fp.SetOrientationDegrees(spec["rot_deg"])
         new_fp.SetReference(spec["reference"])
@@ -114,8 +119,10 @@ def _snapshot_panel_footprints(board):
         if not field_value:
             continue
         pos = fp.GetPosition()
+        lib_name, fp_name = _resolve_footprint_name(field_value)
         specs.append({
-            "name": _resolve_footprint_name(field_value),
+            "lib_name": lib_name,
+            "fp_name": fp_name,
             "x_mm": pcbnew.ToMM(pos.x),
             "y_mm": pcbnew.ToMM(pos.y),
             "offset_x_mm": _parse_mm_field(fp, FACEPLATE_OFFSET_X_FIELD),
@@ -210,8 +217,15 @@ def _get_field_value(footprint, name):
 
 
 def _resolve_footprint_name(field_value):
-    """`Lib:Name` -> `Name`. Plain `Name` passes through."""
-    return field_value.split(":", 1)[1] if ":" in field_value else field_value
+    """Return (lib_name_or_none, fp_name).
+
+    'LibName:FpName' -> ('LibName', 'FpName')
+    'FpName'         -> (None, 'FpName')
+    """
+    if ":" in field_value:
+        lib, name = field_value.split(":", 1)
+        return lib, name
+    return None, field_value
 
 
 _io_plugin_cache = None
@@ -232,21 +246,124 @@ def _kicad_io_plugin():
     return _io_plugin_cache
 
 
-def _load_faceplate_footprint(name):
-    if not os.path.isdir(FACEPLATE_LIB_PATH):
-        raise RuntimeError(
-            f"Faceplate library directory not found:\n  {FACEPLATE_LIB_PATH}\n"
-            f"Make sure Faceplate.pretty/ sits next to faceplate_plugin/ in the repo, "
-            f"and that the plugin install is a symlink (so realpath resolves correctly)."
-        )
+def _load_faceplate_footprint(fp_name, lib_name=None, project_dir=None):
+    """Load a footprint by name, optionally from an external KiCad library.
+
+    When lib_name is None or equals the built-in library name, loads from
+    Faceplate.pretty. Otherwise resolves the library path from the global and
+    project fp-lib-table files.
+    """
+    if lib_name is None or lib_name == FACEPLATE_LIB_NAME:
+        lib_path = FACEPLATE_LIB_PATH
+        if not os.path.isdir(lib_path):
+            raise RuntimeError(
+                f"Faceplate library directory not found:\n  {lib_path}\n"
+                f"Make sure Faceplate.pretty/ sits next to faceplate_plugin/ in the repo, "
+                f"and that the plugin install is a symlink (so realpath resolves correctly)."
+            )
+    else:
+        lib_path = _find_lib_path(lib_name, project_dir)
+
     io = _kicad_io_plugin()
-    fp = io.FootprintLoad(FACEPLATE_LIB_PATH, name)
+    fp = io.FootprintLoad(lib_path, fp_name)
     if fp is None:
         raise RuntimeError(
-            f"Could not load footprint '{name}' from {FACEPLATE_LIB_PATH}. "
-            f"Confirm {name}.kicad_mod exists in Faceplate.pretty/."
+            f"Could not load footprint '{fp_name}' from {lib_path}. "
+            f"Confirm {fp_name}.kicad_mod exists in that library."
         )
     return fp
+
+
+def _find_lib_path(lib_name, project_dir=None):
+    """Resolve a KiCad footprint library nickname to its .pretty directory path."""
+    table_files = []
+    if project_dir:
+        table_files.append(os.path.join(project_dir, "fp-lib-table"))
+    global_table = _global_fp_lib_table_path()
+    if global_table:
+        table_files.append(global_table)
+
+    for table_file in table_files:
+        if os.path.isfile(table_file):
+            uri = _parse_fp_lib_table(table_file, lib_name)
+            if uri:
+                return _expand_lib_uri(uri, project_dir)
+
+    raise RuntimeError(
+        f"Footprint library '{lib_name}' not found in KiCad library tables.\n"
+        f"Searched:\n" + "\n".join(f"  {p}" for p in table_files)
+    )
+
+
+def _global_fp_lib_table_path():
+    """Return the path to the global fp-lib-table file, or None if not found."""
+    try:
+        return pcbnew.FP_LIB_TABLE.GetGlobalTableUri()
+    except (AttributeError, Exception):
+        pass
+
+    home = os.path.expanduser("~")
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA", os.path.join(home, "AppData", "Roaming"))
+        kicad_dir = os.path.join(base, "kicad")
+    elif sys.platform == "darwin":
+        kicad_dir = os.path.join(home, "Library", "Preferences", "kicad")
+    else:
+        config_home = os.environ.get("XDG_CONFIG_HOME", os.path.join(home, ".config"))
+        kicad_dir = os.path.join(config_home, "kicad")
+
+    for version in ("10.0", "9.0", "8.0", "7.0", "6.0"):
+        path = os.path.join(kicad_dir, version, "fp-lib-table")
+        if os.path.isfile(path):
+            return path
+
+    path = os.path.join(kicad_dir, "fp-lib-table")
+    return path if os.path.isfile(path) else None
+
+
+def _parse_fp_lib_table(path, lib_name):
+    """Return the URI for lib_name from an fp-lib-table file, or None."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            content = f.read()
+    except OSError:
+        return None
+
+    i = 0
+    while i < len(content):
+        idx = content.find("(lib ", i)
+        if idx == -1:
+            break
+        # Walk to the matching closing paren.
+        depth = 0
+        j = idx
+        while j < len(content):
+            if content[j] == "(":
+                depth += 1
+            elif content[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+            j += 1
+        block = content[idx : j + 1]
+        name_m = re.search(r'\(name\s+"([^"]+)"\)', block)
+        uri_m = re.search(r'\(uri\s+"([^"]+)"\)', block)
+        if name_m and uri_m and name_m.group(1) == lib_name:
+            return uri_m.group(1)
+        i = j + 1
+
+    return None
+
+
+def _expand_lib_uri(uri, project_dir=None):
+    """Expand KiCad ${VAR} placeholders and return the resolved path."""
+    def _replace(match):
+        var = match.group(1)
+        if var == "KIPRJMOD" and project_dir:
+            return project_dir
+        return os.environ.get(var, match.group(0))
+
+    return re.sub(r"\$\{([^}]+)\}", _replace, uri)
 
 
 def _strip_board(board):

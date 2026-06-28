@@ -75,8 +75,9 @@ class EurorackFaceplatePlugin(pcbnew.ActionPlugin):
         if panel_count == 0:
             msg += (
                 "\n\nNo footprints had a 'Faceplate' field set. "
-                "Field name must be exactly 'Faceplate' (case sensitive) "
-                "and value 'Faceplate:<FootprintName>'.\n\n"
+                "Field name must be exactly 'Faceplate' (case sensitive). "
+                "Value must be '<FootprintName>' (from the built-in Faceplate library) "
+                "or '<LibraryName>:<FootprintName>' (from any KiCad footprint library).\n\n"
                 "Footprints scanned:\n" + (diag or "  <none>")
             )
         self._info(msg)
