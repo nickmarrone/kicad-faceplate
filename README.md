@@ -69,12 +69,12 @@ The HP is detected from your source PCB's edge cuts; make sure the outline is ro
 | `Faceplate:Switch_Toggle_SubMini` | Ø4.95 mm with anti-rotation flat (4.55 mm chord on top) | Sub-mini SPDT/DPDT toggle. Rotate the source footprint 90° if you want the flat on the side. |
 | `Faceplate:Switch_Tactile_Panel` | Ø7 mm | Panel-mount tactile switch |
 | `Faceplate:Switch_Tactile_6x6mm` | Ø6.5 mm | 6×6 mm tactile push button with 6 mm round actuator (0.25 mm side clearance) |
-| `Faceplate:SliderPot_PTA3043` | 32 × 3 mm slot | Bourns PTA3043 30 mm sliding potentiometer. Slot is vertical (travel along Y) by default — rotate the source footprint 90° for horizontal travel. |
-| `Faceplate:SliderPot_PTA6043` | 62 × 3 mm slot | Bourns PTA6043 60 mm sliding potentiometer. Slot is vertical (travel along Y) by default — rotate the source footprint 90° for horizontal travel. |
+| `Faceplate:Bourns_PTA3043` | 32 × 3 mm slot | Bourns PTA3043 30 mm sliding potentiometer. Slot is vertical (travel along Y) by default — rotate the source footprint 90° for horizontal travel. |
+| `Faceplate:Bourns_PTA6043` | 62 × 3 mm slot | Bourns PTA6043 60 mm sliding potentiometer. Slot is vertical (travel along Y) by default — rotate the source footprint 90° for horizontal travel. |
 | `Faceplate:SliderSwitch_KH-SS23E06` | 6 × 3.5 mm slot | Kinghelm KH-SS23E06-G8 DP3T slide switch (2.5 mm travel, 3 positions). Slot is vertical by default — rotate 90° for horizontal. |
 | `Faceplate:MountingHole_M3_Oval` | 5.5 × 3.2 mm slot, plated | M3 mounting slot (auto-added by the plugin). PTH with a 0.5 mm copper annular ring (pad 6.5 × 4.2 mm) so the rail screw can bond the panel to chassis ground. |
 
-All circular hole footprints draw a 0.8 mm wide exposed-copper band on F.Cu just outside the cutout, with matching soldermask opening. This adds a metallic accent ring around each panel cutout once the board is fabricated. The slider footprints (`SliderPot_*`, `SliderSwitch_KH-SS23E06`) draw the same accent as a 0.6 mm outline traced on the slot edge, with the soldermask opening as a slightly larger filled rectangle.
+All circular hole footprints draw a 0.8 mm wide exposed-copper band on F.Cu just outside the cutout, with matching soldermask opening. This adds a metallic accent ring around each panel cutout once the board is fabricated. The slider footprints (`Bourns_PTA*`, `SliderSwitch_KH-SS23E06`) draw the same accent as a 0.6 mm outline traced on the slot edge, with the soldermask opening as a slightly larger filled rectangle.
 
 To add your own panel hole, drop a new `.kicad_mod` into `Faceplate.pretty/` and reference it by name in your `Faceplate` field.
 

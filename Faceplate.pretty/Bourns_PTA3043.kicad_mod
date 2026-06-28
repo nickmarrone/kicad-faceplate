@@ -1,15 +1,15 @@
-(footprint "SliderSwitch_KH-SS23E06"
+(footprint "SliderPot_PTA3043"
 	(version 20260206)
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "Eurorack panel slot for Kinghelm KH-SS23E06-G8 DP3T vertical slide switch. 6x3.5mm slot, 2.5mm travel.")
-	(tags "eurorack faceplate slider switch 3-position DP3T kinghelm SS23E06")
-	(property "Reference" "SW**"
-		(at 0 -6 0)
+	(descr "Eurorack panel slot for Bourns PTA3043 30mm sliding potentiometer. 32x3mm slot.")
+	(tags "eurorack faceplate slider potentiometer bourns PTA3043")
+	(property "Reference" "RV**"
+		(at 0 -20 0)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "c9e7ef09-2768-45f1-80ed-f2f3e068b3fb")
+		(uuid "617cab48-4b8e-4c6d-9cdb-4b719bb93194")
 		(effects
 			(font
 				(size 1 1)
@@ -17,11 +17,11 @@
 			)
 		)
 	)
-	(property "Value" "SliderSwitch_KH-SS23E06"
-		(at 0 6 0)
+	(property "Value" "SliderPot_PTA3043"
+		(at 0 20 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "4fde2a6f-e419-4024-9b5b-dcf1f26ef344")
+		(uuid "8f89a7c1-d46c-4e45-9154-60a2cb82e914")
 		(effects
 			(font
 				(size 1 1)
@@ -33,7 +33,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "f1656821-d6d9-4324-bf43-4c68330e792f")
+		(uuid "0dc0508b-8f55-4748-936f-cf72dfebadca")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -44,7 +44,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "a329521f-5652-43d2-9f10-c64e8a8dfeb1")
+		(uuid "889507d7-ad2d-49d3-87cf-bfd340acc48b")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -54,44 +54,44 @@
 	(attr exclude_from_pos_files exclude_from_bom allow_missing_courtyard)
 	(duplicate_pad_numbers_are_jumpers no)
 	(fp_line
-		(start -3 -1.75)
-		(end 3 -1.75)
+		(start -16.125 -1.5)
+		(end -16.125 1.5)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "e823df65-a4c9-4464-8b30-517c8c642d83")
+		(uuid "0dacd102-312b-45d5-b2e8-960faa564d10")
 	)
 	(fp_line
-		(start -3 1.75)
-		(end -3 -1.75)
+		(start -16.125 -1.5)
+		(end 16.125 -1.5)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "224f6420-bf16-4dd3-a804-c90e8153d1a0")
+		(uuid "b90fd720-f950-494f-9e5c-53cd012a9584")
 	)
 	(fp_line
-		(start 3 1.75)
-		(end -3 1.75)
+		(start 16.125 -1.5)
+		(end 16.125 1.5)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "994f4c0f-79ab-46fc-aa6c-05ec0cbba350")
+		(uuid "5925edc7-194b-41cc-94a1-8035d0c21e8d")
 	)
 	(fp_line
-		(start 3 1.75)
-		(end 3 -1.75)
+		(start 16.125 1.5)
+		(end -16.125 1.5)
 		(stroke
 			(width 0.05)
 			(type default)
 		)
 		(layer "Edge.Cuts")
-		(uuid "d44dd33c-0430-4259-ac8b-3dfb999ad2cb")
+		(uuid "d1a7dd09-56bb-4f2f-9cba-0a4281766ea0")
 	)
 	(embedded_fonts no)
 )
